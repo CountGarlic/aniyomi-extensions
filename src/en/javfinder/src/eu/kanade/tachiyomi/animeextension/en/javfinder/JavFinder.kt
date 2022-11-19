@@ -174,8 +174,8 @@ class JavFinder : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
                     is TypeList -> {
                         catLink = getTypeList()[filter.state].query
                     }
-                    is SortFilter -> {
-                        sortType = getSortList()[filter.state].query
+                    is SortHot -> {
+                        sortType = if (filter.state) "/hot" else ""
                     }
                 }
             }
@@ -196,6 +196,7 @@ class JavFinder : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
         anime.title = document.select("h1.entry-title").text()
         anime.description = document.select("h1.entry-title").text()
         anime.author = document.select("div#video-actors a").text()
+        anime.status = SAnime.COMPLETED
         return anime
     }
 
@@ -215,7 +216,7 @@ class JavFinder : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
 
     override fun getFilterList() = AnimeFilterList(
         TypeList(typesName),
-        SortFilter(getSortList().map { it.name }.toTypedArray())
+        SortHot(false),
     )
 
     private class TypeList(types: Array<String>) : AnimeFilter.Select<String>("Jav Type", types)
@@ -225,26 +226,27 @@ class JavFinder : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
     }.toTypedArray()
 
     private fun getTypeList(): List<Type> {
-        val document = client.newCall(GET("$baseUrl/category")).execute().asJsoup()
-        val articles = document.select("div.videos-list article")
+        var document = client.newCall(GET("$baseUrl/category")).execute().asJsoup()
+        val pages = document.select("div.pagination ul>li a").last().attr("href").substringAfter("page-").toInt()
 
         val catList = mutableListOf<Type>(
             Type("Latest", "/movies"),
         )
-        for (a in articles) {
-            val el = a.select("a")
-            val href = el.attr("href")
-            val catName = el.attr("title")
-            catList.add(Type(catName, href))
+        for (page in 1..pages) {
+            document = client.newCall(GET("$baseUrl/category/page-$page")).execute().asJsoup()
+            val articles = document.select("div.videos-list article")
+
+            for (a in articles) {
+                val el = a.select("a")
+                val href = el.attr("href")
+                val catName = el.attr("title")
+                catList.add(Type(catName, href))
+            }
         }
         return catList
     }
 
-    private class SortFilter(types: Array<String>) : AnimeFilter.Select<String>("Sort", types)
-    private fun getSortList() = listOf(
-        Type("New", ""),
-        Type("Hot", "/hot"),
-    )
+    private class SortHot(values: Boolean) : AnimeFilter.CheckBox("Hot", false)
 
     // Preferences
 
