@@ -220,30 +220,13 @@ class JavFinder : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
     )
 
     private class TypeList(types: Array<String>) : AnimeFilter.Select<String>("Jav Type", types)
-    private data class Type(val name: String, val query: String)
+    internal data class Type(val name: String, val query: String)
     private val typesName = getTypeList().map {
         it.name
     }.toTypedArray()
 
     private fun getTypeList(): List<Type> {
-        var document = client.newCall(GET("$baseUrl/category")).execute().asJsoup()
-        val pages = document.select("div.pagination ul>li a").last().attr("href").substringAfter("page-").toInt()
-
-        val catList = mutableListOf<Type>(
-            Type("Latest", "/movies"),
-        )
-        for (page in 1..pages) {
-            document = client.newCall(GET("$baseUrl/category/page-$page")).execute().asJsoup()
-            val articles = document.select("div.videos-list article")
-
-            for (a in articles) {
-                val el = a.select("a")
-                val href = el.attr("href")
-                val catName = el.attr("title")
-                catList.add(Type(catName, href))
-            }
-        }
-        return catList
+        return getJavFinderCategory()
     }
 
     private class SortHot(values: Boolean) : AnimeFilter.CheckBox("Hot", false)
