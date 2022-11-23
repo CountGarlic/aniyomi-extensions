@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.animeextension.en.javfinder
 
 internal fun getJavFinderCategory() = listOf<JavFinder.Type>(
+    JavFinder.Type("Latest", "/movies"),
     JavFinder.Type("Blowjob", "/category/blowjob"),
     JavFinder.Type("Creampie", "/category/creampie"),
     JavFinder.Type("Handjob", "/category/handjob"),
