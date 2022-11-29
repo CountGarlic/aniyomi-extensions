@@ -36,7 +36,7 @@ class JavFinder : ConfigurableAnimeSource, ParsedAnimeHttpSource() {
 
     override val lang = "en"
 
-    override val supportsLatest = false
+    override val supportsLatest = true
 
     private val dateFormat: SimpleDateFormat = SimpleDateFormat("MMMM dd,yyyy", Locale.ENGLISH)
 
